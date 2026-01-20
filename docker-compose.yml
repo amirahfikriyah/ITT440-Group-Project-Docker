@@ -1,0 +1,46 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "3306:3306"
+
+  server_py:
+    build: ./server_py
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASS: rootpass
+      DB_NAME: itt440
+      USER_ID: python_user
+      PORT: 5001
+    depends_on:
+      - db
+    ports:
+      - "5001:5001"
+
+  client_py:
+    build: ./client_py
+    environment:
+      SERVER_HOST: server_py
+      SERVER_PORT: 5001
+    depends_on:
+      - server_py
+
+  server_c:
+    build: ./server_c
+    depends_on:
+      - db
+    ports:
+      - "5002:5002"
+
+  client_c:
+    build: ./client_c
+    environment:
+      SERVER_HOST: server_c
+      SERVER_PORT: 5002
+    depends_on:
+      - server_c
